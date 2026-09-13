@@ -1,0 +1,99 @@
+<div class="field-group">
+  <label for="{{ id_prefix }}Model">Modele</label>
+  <select id="{{ id_prefix }}Model" data-openai-stt-model>{{ model_options }}</select>
+</div>
+
+<div class="field-group">
+  <label for="{{ id_prefix }}ApiKey">API key</label>
+  <input
+    id="{{ id_prefix }}ApiKey"
+    data-openai-stt-api-key
+    data-block-skip-empty="true"
+    type="password"
+    placeholder="{{ api_key_placeholder }}"
+    autocomplete="off"
+    spellcheck="false"
+  />
+  <label class="checkbox-line">
+    <input data-openai-stt-clear-api-key type="checkbox" />
+    <span>Effacer la cle existante</span>
+  </label>
+</div>
+
+{{ audio_path_browser_html }}
+
+<div class="field-group">
+  <label for="{{ id_prefix }}Language">Langue</label>
+  <input id="{{ id_prefix }}Language" data-openai-stt-language type="text" value="{{ language }}" placeholder="fr" spellcheck="false" />
+</div>
+
+<div class="field-group">
+  <label for="{{ id_prefix }}Prompt">Prompt</label>
+  <textarea id="{{ id_prefix }}Prompt" data-openai-stt-prompt rows="3" placeholder="Contexte optionnel pour guider la transcription...">{{ prompt }}</textarea>
+</div>
+
+<div class="field-group">
+  <label for="{{ id_prefix }}ResponseFormat">Format reponse</label>
+  <select id="{{ id_prefix }}ResponseFormat" data-openai-stt-response-format>{{ response_format_options }}</select>
+</div>
+
+<div class="field-grid two-cols">
+  <div class="field-group">
+    <label for="{{ id_prefix }}ChunkSizeMb">Chunk size Mo</label>
+    <input id="{{ id_prefix }}ChunkSizeMb" data-openai-stt-chunk-size-mb type="number" min="1" max="25" step="1" value="{{ chunk_size_mb }}" />
+  </div>
+  <div class="field-group">
+    <label for="{{ id_prefix }}ChunkDurationSec">Fenetre sec</label>
+    <input id="{{ id_prefix }}ChunkDurationSec" data-openai-stt-chunk-duration-sec type="number" min="1" max="600" step="1" value="{{ chunk_duration_sec }}" />
+  </div>
+</div>
+
+<div class="field-grid two-cols">
+  <div class="field-group">
+    <label for="{{ id_prefix }}ChunkOverlapSec">Chevauchement sec</label>
+    <input id="{{ id_prefix }}ChunkOverlapSec" data-openai-stt-chunk-overlap-sec type="number" min="0" max="60" step="1" value="{{ chunk_overlap_sec }}" />
+  </div>
+  <div class="field-group">
+    <label for="{{ id_prefix }}ChunkingStrategy">Diarize chunking</label>
+    <select id="{{ id_prefix }}ChunkingStrategy" data-openai-stt-chunking-strategy>{{ chunking_strategy_options }}</select>
+  </div>
+</div>
+
+<div class="field-group">
+  <label class="checkbox-line">
+    <input data-openai-stt-chunking-enabled type="checkbox" {{ chunking_enabled_checked }} />
+    <span>Decouper automatiquement les fichiers superieurs au chunk size</span>
+  </label>
+  <label class="checkbox-line">
+    <input data-openai-stt-sliding-context-enabled type="checkbox" {{ sliding_context_checked }} />
+    <span>Utiliser le texte du chunk precedent comme contexte glissant</span>
+  </label>
+</div>
+
+<div class="field-group">
+  <label class="checkbox-line">
+    <input data-openai-stt-experimental-audio-filter-enabled type="checkbox" {{ experimental_audio_filter_enabled_checked }} />
+    <span>Appliquer un filtre audio ffmpeg avant transcription</span>
+  </label>
+  <textarea
+    data-openai-stt-experimental-audio-filter
+    rows="3"
+    spellcheck="false"
+    placeholder="highpass=f=90,lowpass=f=7600,afftdn=nr=8,loudnorm=I=-16:TP=-2:LRA=8"
+  >{{ experimental_audio_filter }}</textarea>
+</div>
+
+<div class="field-grid two-cols">
+  <div class="field-group">
+    <label for="{{ id_prefix }}TimeoutSec">Timeout sec</label>
+    <input id="{{ id_prefix }}TimeoutSec" data-openai-stt-timeout-sec type="number" min="1" step="1" value="{{ timeout_sec }}" />
+  </div>
+  <div class="field-group">
+    <label for="{{ id_prefix }}ApiBaseUrl">Base URL</label>
+    <input id="{{ id_prefix }}ApiBaseUrl" data-openai-stt-api-base-url type="text" value="{{ api_base_url }}" spellcheck="false" />
+  </div>
+</div>
+
+<div class="inspector-actions">
+  <button class="solid-btn" {{ apply_button_attr }} type="button" disabled>Appliquer</button>
+</div>

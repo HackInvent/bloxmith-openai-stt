@@ -1,0 +1,62 @@
+<div class="modal-panel block-config-modal cw-openai-stt-modal" role="dialog" aria-modal="true" aria-labelledby="{{ node_id }}BlockModalTitle" data-generic-block-modal-root data-openai-stt-modal-root data-block-runtime-refresh="autonomous" data-node-id="{{ node_id }}" data-node-kind="{{ node_kind }}">
+  <div class="modal-header">
+    <div>
+      <span class="panel-kicker">Bloc {{ node_kind_title }}</span>
+      <h2 id="{{ node_id }}BlockModalTitle">{{ node_title }}</h2>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" data-close-block-modal type="button">Fermer</button>
+    </div>
+  </div>
+  <div class="openai-stt-modal-body">
+    <div class="openai-stt-modal-tablist" role="tablist" aria-label="Sections du bloc OpenAI STT">
+      <button class="openai-stt-modal-tab" data-openai-stt-modal-tab data-openai-stt-tab-id="parameters" type="button" role="tab" aria-selected="true" tabindex="0">
+        <span>Parametres</span>
+        <small>Modele, audio, chunking</small>
+      </button>
+      <button class="openai-stt-modal-tab" data-openai-stt-modal-tab data-openai-stt-tab-id="attributes" type="button" role="tab" aria-selected="false" tabindex="-1">
+        <span>Attributs</span>
+        <small>Nom et extensions</small>
+      </button>
+      <button class="openai-stt-modal-tab" data-openai-stt-modal-tab data-openai-stt-tab-id="runtime" type="button" role="tab" aria-selected="false" tabindex="-1">
+        <span>Ports & etat</span>
+        <small>Connexions et dernier run</small>
+      </button>
+    </div>
+
+    <div class="openai-stt-modal-panels">
+      <section class="openai-stt-modal-panel" data-openai-stt-modal-panel data-openai-stt-tab-id="parameters" role="tabpanel">
+        <section class="openai-stt-modal-section">
+          <div class="ports-editor-header"><span class="group-label">Parametres OpenAI STT</span></div>
+          {{ config_fields_html }}
+        </section>
+      </section>
+
+      <section class="openai-stt-modal-panel" data-openai-stt-modal-panel data-openai-stt-tab-id="attributes" role="tabpanel" hidden>
+        <div class="openai-stt-modal-grid">
+          <section class="openai-stt-modal-section">
+            <div class="ports-editor-header"><span class="group-label">Identite</span></div>
+            {{ title_field_html }}
+          </section>
+          <section class="openai-stt-modal-section">
+            <div class="ports-editor-header"><span class="group-label">Attributs techniques</span></div>
+            {{ technical_config_fields_html }}
+          </section>
+        </div>
+      </section>
+
+      <section class="openai-stt-modal-panel" data-openai-stt-modal-panel data-openai-stt-tab-id="runtime" role="tabpanel" hidden>
+        <div class="openai-stt-modal-grid">
+          <section class="openai-stt-modal-section">
+            <div class="ports-editor-header"><span class="group-label">Ports</span></div>
+            {{ ports_html }}
+          </section>
+          <section class="openai-stt-modal-section">
+            <div class="ports-editor-header"><span class="group-label">Dernier etat</span></div>
+            {{ runtime_html }}
+          </section>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
