@@ -53,7 +53,7 @@ from block_test_packages import install_test_package, release_key, surface_paylo
 
 
 SECRET = "sk-test-openai-stt-secret"
-TRANSCRIPT = "bonjour depuis le faux stt"
+TRANSCRIPT = "hello from the fake stt"
 
 
 def runtime_node_id_for_kind(run: dict[str, Any], kind: str) -> str:
