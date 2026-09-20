@@ -224,7 +224,7 @@ def direct_context(
 
 def run_openai_stt_case(runtime_mode: str, fake_server: FakeOpenAiSttHttpServer) -> None:
     with isolated_server() as server:
-        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        # Surfaces are release assets: a bundled kind serves none of them.
         model = install_test_package(server, "openai_stt")
         key = quote(release_key(model), safe="")
         served = lambda payload, suffix: next(
@@ -253,43 +253,43 @@ def run_openai_stt_case(runtime_mode: str, fake_server: FakeOpenAiSttHttpServer)
         expect(run.get("status") == "success", f"Le run OpenAI STT {runtime_mode} doit reussir.")
         expect(
             run.get("output_values", {}).get(f"{stt_node_id}:1", {}).get("value") == TRANSCRIPT,
-            "La transcription STT doit sortir sur le port transcript.",
+            "The STT transcript must be published on the transcript port.",
         )
         raw_json = run.get("output_values", {}).get(f"{stt_node_id}:2", {}).get("value") or ""
-        expect(TRANSCRIPT in raw_json and "segments" in raw_json, "La reponse JSON brute doit sortir sur raw_json.")
-        expect(SECRET not in logs and SECRET not in node_logs, "La cle API ne doit pas apparaitre dans les logs.")
-        expect("fallback centralized" not in logs, "Le run ne doit pas fallback centralise.")
+        expect(TRANSCRIPT in raw_json and "segments" in raw_json, "The raw JSON response must be published on raw_json.")
+        expect(SECRET not in logs and SECRET not in node_logs, "The API key must not appear in the logs.")
+        expect("fallback centralized" not in logs, "The run must not fall back to centralized.")
         if runtime_mode == "centralized":
             run_log_text = f"{logs}\n{node_logs}"
-            expect("validation fichier OK" in run_log_text, "Le run centralise doit recevoir les logs live STT.")
-            expect("envoi OpenAI fichier complet" in run_log_text, "Le run centralise doit tracer l'appel OpenAI STT.")
+            expect("file validation OK" in run_log_text, "The centralized run must receive the live STT logs.")
+            expect("full-file OpenAI upload" in run_log_text, "The centralized run must trace the OpenAI STT call.")
         if runtime_mode == "zeromq_active":
             expect(
                 run.get("results", {}).get(stt_node_id, {}).get("transport") == "zeromq_active",
-                "openai_stt doit etre execute via zeromq_active.",
+                "openai_stt must run through zeromq_active.",
             )
 
 
 def test_http_requests(fake_server: FakeOpenAiSttHttpServer) -> None:
-    expect(len(fake_server.requests_log) >= 2, "Le faux endpoint STT doit recevoir une requete par run.")
+    expect(len(fake_server.requests_log) >= 2, "The fake STT endpoint must receive one request per run.")
     for request in fake_server.requests_log:
         body = request["body"]
-        expect(request["path"] == "/v1/audio/transcriptions", "Le bloc doit appeler /v1/audio/transcriptions.")
-        expect(request["authorization"] == f"Bearer {SECRET}", "Le bloc doit envoyer la cle API en bearer token.")
-        expect(b'gpt-4o-mini-transcribe' in body, "Le modele STT doit etre present dans le multipart.")
-        expect(b'Conversation courte.' in body, "Le prompt STT doit etre present dans le multipart.")
-        expect(b'audio-' in body, "Le fichier audio doit etre present dans le multipart.")
+        expect(request["path"] == "/v1/audio/transcriptions", "The block must call /v1/audio/transcriptions.")
+        expect(request["authorization"] == f"Bearer {SECRET}", "The block must send the API key as a bearer token.")
+        expect(b'gpt-4o-mini-transcribe' in body, "The STT model must be present in the multipart body.")
+        expect(b'Conversation courte.' in body, "The STT prompt must be present in the multipart body.")
+        expect(b'audio-' in body, "The audio file must be present in the multipart body.")
 
 
 def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
     node = openai_stt_node(fake_server.base_url)
     rendered = render_block_inspector_panel("openai_stt", {"node": node})
     html = str(rendered.get("html") or "")
-    expect("data-openai-stt-inspector-root" in html, "Le panneau inspecteur OpenAI STT doit venir du bloc.")
-    expect(SECRET not in html, "La cle API ne doit pas etre rendue en clair dans le HTML.")
-    expect("data-path-browser" in html, "Le panneau OpenAI STT doit utiliser le path browser commun.")
-    expect("data-openai-stt-audio-path" in html, "Le panneau OpenAI STT doit exposer le chemin audio.")
-    expect("gpt-4o-transcribe" in html and "gpt-4o-mini-transcribe" in html, "Le select doit proposer les modeles STT.")
+    expect("data-openai-stt-inspector-root" in html, "The OpenAI STT inspector panel must come from the block.")
+    expect(SECRET not in html, "The API key must not be rendered in clear text in the HTML.")
+    expect("data-path-browser" in html, "The OpenAI STT panel must use the shared path browser.")
+    expect("data-openai-stt-audio-path" in html, "The OpenAI STT panel must expose the audio path.")
+    expect("gpt-4o-transcribe" in html and "gpt-4o-mini-transcribe" in html, "The select must offer the STT models.")
     for marker in (
         "data-openai-stt-model",
         "data-openai-stt-api-key",
@@ -300,23 +300,23 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
         "data-openai-stt-timeout-sec",
         "data-openai-stt-api-base-url",
     ):
-        expect(marker in html, f"Le panneau inspecteur doit exposer le controle {marker}.")
+        expect(marker in html, f"The inspector panel must expose the control {marker}.")
     expect(
         "data-openai-stt-experimental-audio-filter-enabled" in html,
-        "Le panneau inspecteur doit exposer l'activation du filtre audio ffmpeg.",
+        "The inspector panel must expose the ffmpeg audio filter toggle.",
     )
     expect(
         "data-openai-stt-experimental-audio-filter" in html,
-        "Le panneau inspecteur doit exposer le filtre audio ffmpeg editable.",
+        "The inspector panel must expose the ffmpeg audio filter as editable.",
     )
     expect(
         "data-openai-stt-sliding-context-enabled" in html,
-        "Le panneau inspecteur doit exposer l'option contexte glissant.",
+        "The inspector panel must expose the sliding context option.",
     )
-    expect("data-block-apply" in html, "Le panneau OpenAI STT doit exposer le bouton Appliquer.")
+    expect("data-block-apply" in html, "The OpenAI STT panel must expose the Apply button.")
     expect(
         rendered.get("context", {}).get("inspector_title") == "OpenAI STT",
-        "Le titre inspecteur OpenAI STT doit venir du bloc.",
+        "The OpenAI STT inspector title must come from the block.",
     )
 
     keep_result = handle_block_ui_action(
@@ -345,34 +345,34 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
         },
     )
     keep_config = keep_result.get("node_patch", {}).get("config", {})
-    expect("api_key" not in keep_config, "Une saisie vide doit conserver la cle existante.")
-    expect(keep_config.get("timeout_sec") == 30, "Le timeout inspecteur doit etre normalise.")
-    expect(keep_config.get("chunk_size_mb") == 1, "Le chunk size inspecteur doit etre normalise.")
-    expect(keep_config.get("chunk_duration_sec") == 30, "La duree de chunk inspecteur doit etre normalisee.")
-    expect(keep_config.get("chunk_overlap_sec") == 2, "Le chevauchement inspecteur doit etre normalise.")
-    expect(keep_config.get("experimental_audio_filter_enabled") is True, "Le filtre audio doit etre activable.")
+    expect("api_key" not in keep_config, "An empty entry must keep the existing key.")
+    expect(keep_config.get("timeout_sec") == 30, "The inspector timeout must be normalized.")
+    expect(keep_config.get("chunk_size_mb") == 1, "The inspector chunk size must be normalized.")
+    expect(keep_config.get("chunk_duration_sec") == 30, "The inspector chunk duration must be normalized.")
+    expect(keep_config.get("chunk_overlap_sec") == 2, "The inspector overlap must be normalized.")
+    expect(keep_config.get("experimental_audio_filter_enabled") is True, "The audio filter must be switchable on.")
     expect(
         keep_config.get("experimental_audio_filter") == "highpass=f=120,lowpass=f=5000",
-        "Le filtre audio doit etre editable.",
+        "The audio filter must be editable.",
     )
-    expect(keep_config.get("sliding_context_enabled") is True, "L'option contexte glissant doit etre preservee.")
+    expect(keep_config.get("sliding_context_enabled") is True, "The sliding context option must be preserved.")
 
     modal = render_block_modal("openai_stt", {"node": node, "runtime": {}})
     modal_html = str(modal.get("html") or "")
     modal_assets = modal.get("assets") or []
-    expect("data-openai-stt-modal-root" in modal_html, "Le modal OpenAI STT doit exposer sa racine dediee.")
-    expect('data-block-runtime-refresh="autonomous"' in modal_html, "Le modal OpenAI STT doit gerer son refresh runtime.")
-    expect("data-openai-stt-modal-tab" in modal_html, "Le modal OpenAI STT doit exposer les onglets.")
+    expect("data-openai-stt-modal-root" in modal_html, "The OpenAI STT modal must expose its dedicated root.")
+    expect('data-block-runtime-refresh="autonomous"' in modal_html, "The OpenAI STT modal must own its runtime refresh.")
+    expect("data-openai-stt-modal-tab" in modal_html, "The OpenAI STT modal must expose the tabs.")
     expect(
         'data-openai-stt-tab-id="parameters"' in modal_html,
-        "Le modal OpenAI STT doit ouvrir un onglet Parametres.",
+        "The OpenAI STT modal must open a Settings tab.",
     )
-    expect("data-path-browser" in modal_html, "Le modal OpenAI STT doit utiliser le path browser commun.")
-    expect("data-openai-stt-audio-path" in modal_html, "Le modal OpenAI STT doit exposer le chemin audio.")
-    expect("data-openai-stt-apply" in modal_html, "Le modal OpenAI STT doit exposer l'action Appliquer.")
+    expect("data-path-browser" in modal_html, "The OpenAI STT modal must use the shared path browser.")
+    expect("data-openai-stt-audio-path" in modal_html, "The OpenAI STT modal must expose the audio path.")
+    expect("data-openai-stt-apply" in modal_html, "The OpenAI STT modal must expose the Apply action.")
     expect(
         'id="openaiSttModalModel"' in modal_html and 'id="openaiSttModalApiKey"' in modal_html,
-        "Le modal OpenAI STT doit utiliser le meme formulaire avec des ids propres au modal.",
+        "The OpenAI STT modal must reuse the same form with modal-specific ids.",
     )
     for marker in (
         "data-openai-stt-model",
@@ -384,8 +384,8 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
         "data-openai-stt-timeout-sec",
         "data-openai-stt-api-base-url",
     ):
-        expect(marker in modal_html, f"Le modal doit reproduire le controle inspecteur {marker}.")
-    expect(SECRET not in modal_html, "La cle API ne doit pas etre rendue en clair dans le modal.")
+        expect(marker in modal_html, f"The modal must mirror the inspector control {marker}.")
+    expect(SECRET not in modal_html, "The API key must not be rendered in clear text in the modal.")
 
     modal_result = handle_block_ui_action(
         "openai_stt",
@@ -413,8 +413,8 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
         },
     )
     modal_config = modal_result.get("node_patch", {}).get("config", {})
-    expect(modal_config.get("audio_path") == "./modal.wav", "Le modal doit persister le chemin audio.")
-    expect(modal_config.get("timeout_sec") == 45, "Le modal doit normaliser le timeout.")
+    expect(modal_config.get("audio_path") == "./modal.wav", "The modal must persist the audio path.")
+    expect(modal_config.get("timeout_sec") == 45, "The modal must normalize the timeout.")
 
     update_result = handle_block_ui_action(
         "openai_stt",
@@ -425,9 +425,9 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
         },
     )
     update_config = update_result.get("node_patch", {}).get("config", {})
-    expect(update_config.get("model") == "gpt-4o-transcribe-diarize", "Le modele choisi dans l'inspector doit etre conserve.")
-    expect(update_config.get("api_key") == "sk-new", "Une nouvelle cle saisie doit etre persistee.")
-    expect(update_config.get("response_format") == "diarized_json", "Le modele diarize doit utiliser diarized_json par defaut.")
+    expect(update_config.get("model") == "gpt-4o-transcribe-diarize", "The model chosen in the inspector must be kept.")
+    expect(update_config.get("api_key") == "sk-new", "A newly entered key must be persisted.")
+    expect(update_config.get("response_format") == "diarized_json", "The diarize model must use diarized_json by default.")
 
 
 def test_model_constraints(fake_server: FakeOpenAiSttHttpServer) -> None:
@@ -449,10 +449,10 @@ def test_model_constraints(fake_server: FakeOpenAiSttHttpServer) -> None:
                 },
             )
         )
-        expect(result.status == "success", "Le format invalide pour gpt-4o-transcribe doit etre normalise.")
+        expect(result.status == "success", "An invalid format for gpt-4o-transcribe must be normalized.")
         body = fake_server.requests_log[start]["body"]
-        expect(b"verbose_json" not in body, "gpt-4o-transcribe ne doit pas envoyer verbose_json.")
-        expect(b'name="response_format"\r\n\r\njson' in body, "gpt-4o-transcribe doit retomber sur json.")
+        expect(b"verbose_json" not in body, "gpt-4o-transcribe must not send verbose_json.")
+        expect(b'name="response_format"\r\n\r\njson' in body, "gpt-4o-transcribe must fall back to json.")
 
         start = len(fake_server.requests_log)
         result = block.execute_runtime(
@@ -468,11 +468,11 @@ def test_model_constraints(fake_server: FakeOpenAiSttHttpServer) -> None:
                 },
             )
         )
-        expect(result.status == "success", "Le modele diarize doit etre accepte.")
+        expect(result.status == "success", "The diarize model must be accepted.")
         body = fake_server.requests_log[start]["body"]
-        expect(b"PROMPT_SHOULD_NOT_BE_SENT" not in body, "Le prompt ne doit pas etre envoye au modele diarize.")
-        expect(b"chunking_strategy" in body and b"auto" in body, "Le modele diarize doit envoyer chunking_strategy=auto.")
-        expect(b"diarized_json" in body, "Le modele diarize doit utiliser diarized_json par defaut.")
+        expect(b"PROMPT_SHOULD_NOT_BE_SENT" not in body, "The prompt must not be sent to the diarize model.")
+        expect(b"chunking_strategy" in body and b"auto" in body, "The diarize model must send chunking_strategy=auto.")
+        expect(b"diarized_json" in body, "The diarize model must use diarized_json by default.")
 
 
 def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> None:
@@ -491,31 +491,31 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
             )
         )
         request_count = len(fake_server.requests_log) - start
-        expect(result.status == "success", "Le chunking WAV doit reussir sans ffmpeg.")
-        expect(request_count >= 2, "Le fichier WAV doit etre envoye en plusieurs chunks.")
+        expect(result.status == "success", "WAV chunking must succeed without ffmpeg.")
+        expect(request_count >= 2, "The WAV file must be sent as several chunks.")
         expect(
             result.metadata.get("openai_stt", {}).get("chunk_count") == request_count,
-            "Le metadata doit exposer le nombre de chunks.",
+            "The metadata must expose the chunk count.",
         )
         chunk_logs = "\n".join(result.logs)
-        expect("validation fichier OK" in chunk_logs, "Les logs STT doivent tracer la validation du fichier.")
-        expect("audio decoupe en" in chunk_logs, "Les logs STT doivent tracer le nombre de chunks.")
-        expect("chunk 1/" in chunk_logs, "Les logs STT doivent tracer l'appel OpenAI par chunk.")
-        expect("assemblage termine" in chunk_logs, "Les logs STT doivent tracer l'assemblage final.")
+        expect("file validation OK" in chunk_logs, "The STT logs must trace the file validation.")
+        expect("audio split into" in chunk_logs, "The STT logs must trace the chunk count.")
+        expect("chunk 1/" in chunk_logs, "The STT logs must trace the OpenAI call per chunk.")
+        expect("merge complete" in chunk_logs, "The STT logs must trace the final merge.")
         transcript = result.outputs[0].value
-        expect("chunk 2" in transcript, "La transcription doit conserver les segments utiles apres overlap.")
-        expect("overlap 2" not in transcript, "La transcription doit supprimer les segments du pre-roll overlap.")
-        expect("---00:30" in transcript, "La transcription doit marquer le passage au chunk suivant avec mm:ss.")
-        expect(transcript.index("---00:30") < transcript.index("chunk 2"), "Le marqueur temporel doit preceder le texte du chunk.")
+        expect("chunk 2" in transcript, "The transcript must keep the useful segments after the overlap.")
+        expect("overlap 2" not in transcript, "The transcript must drop the pre-roll overlap segments.")
+        expect("---00:30" in transcript, "The transcript must mark the move to the next chunk with mm:ss.")
+        expect(transcript.index("---00:30") < transcript.index("chunk 2"), "The time marker must precede the chunk text.")
         chunked_raw = result.outputs[1].value
-        expect('"chunks"' in chunked_raw, "La sortie raw_json doit conserver les reponses par chunk.")
+        expect('"chunks"' in chunked_raw, "The raw_json output must keep the per-chunk responses.")
         chunked_payload = json.loads(chunked_raw)
-        expect(chunked_payload.get("chunk_duration_sec") == 30, "Le raw_json doit exposer la fenetre de chunk.")
-        expect(chunked_payload.get("chunk_overlap_sec") == 2, "Le raw_json doit exposer le chevauchement.")
-        expect("timestamped_text" in chunked_payload, "Le raw_json doit exposer le texte timestamped.")
+        expect(chunked_payload.get("chunk_duration_sec") == 30, "raw_json must expose the chunk window.")
+        expect(chunked_payload.get("chunk_overlap_sec") == 2, "raw_json must expose the overlap.")
+        expect("timestamped_text" in chunked_payload, "raw_json must expose the timestamped text.")
         expect(
             any(float(chunk.get("ignore_before_sec") or 0.0) == 2.0 for chunk in chunked_payload.get("chunks", [])[1:]),
-            "Les chunks apres le premier doivent exposer ignore_before_sec=2.",
+            "Chunks after the first must expose ignore_before_sec=2.",
         )
 
         sliding_start = len(fake_server.requests_log)
@@ -528,19 +528,19 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
         )
         sliding_requests = fake_server.requests_log[sliding_start:]
         sliding_payload = json.loads(sliding_result.outputs[1].value)
-        expect(sliding_result.status == "success", "Le chunking avec contexte glissant doit reussir.")
-        expect(len(sliding_requests) >= 2, "Le test contexte glissant doit traiter plusieurs chunks.")
+        expect(sliding_result.status == "success", "Chunking with the sliding context must succeed.")
+        expect(len(sliding_requests) >= 2, "The sliding context test must process several chunks.")
         expect(
-            any(b"Contexte du chunk audio precedent" in request["body"] for request in sliding_requests[1:]),
-            "Le contexte glissant doit ajouter une instruction a partir du deuxieme chunk.",
+            any(b"Context from the previous audio chunk" in request["body"] for request in sliding_requests[1:]),
+            "The sliding context must add an instruction from the second chunk on.",
         )
         expect(
             any(b"chunk 1" in request["body"] for request in sliding_requests[1:]),
-            "Le contexte glissant doit injecter le texte du chunk precedent.",
+            "The sliding context must inject the previous chunk text.",
         )
         expect(
             any(chunk.get("sliding_context_used") for chunk in sliding_payload.get("chunks", [])[1:]),
-            "Le raw_json doit indiquer quels chunks ont utilise le contexte glissant.",
+            "raw_json must report which chunks used the sliding context.",
         )
 
         if shutil.which("ffmpeg") and shutil.which("ffprobe"):
@@ -560,11 +560,11 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
             )
             filtered_requests = fake_server.requests_log[filtered_start:]
             filtered_logs = "\n".join(filtered_result.logs)
-            expect(filtered_result.status == "success", "Le chunking avec filtre audio doit reussir.")
-            expect("filtre audio" in filtered_logs, "Les logs doivent tracer le filtre audio.")
+            expect(filtered_result.status == "success", "Chunking with the audio filter must succeed.")
+            expect("audio filter" in filtered_logs, "The logs must trace the audio filter.")
             expect(
                 any(b"Content-Type: audio/x-wav" in request["body"] for request in filtered_requests),
-                "Le filtre audio doit conserver le conteneur WAV du fichier source dans ce test.",
+                "The audio filter must keep the source file's WAV container in this test.",
             )
 
         live_logs: list[str] = []
@@ -577,12 +577,12 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
                 services={"append_log": live_logs.append},
             )
         )
-        expect(live_result.status == "success", "Le chunking avec logger live doit reussir.")
-        expect(len(fake_server.requests_log) - start >= 2, "Le test logger live doit traiter plusieurs chunks.")
+        expect(live_result.status == "success", "Chunking with the live logger must succeed.")
+        expect(len(fake_server.requests_log) - start >= 2, "The live logger test must process several chunks.")
         live_log_text = "\n".join(live_logs)
-        expect("chunk 1/" in live_log_text, "Les logs STT doivent etre emis en live pendant les chunks.")
-        expect("assemblage termine" in live_log_text, "Les logs STT live doivent tracer l'assemblage.")
-        expect(not live_result.logs, "Avec append_log live, les logs STT ne doivent pas etre dupliques en fin de node.")
+        expect("chunk 1/" in live_log_text, "The STT logs must be emitted live while the chunks run.")
+        expect("merge complete" in live_log_text, "The live STT logs must trace the merge.")
+        expect(not live_result.logs, "With live append_log, the STT logs must not be duplicated at the end of the node.")
 
         cancel_start = len(fake_server.requests_log)
         cancel_logs: list[str] = []
@@ -597,10 +597,10 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
                 },
             )
         )
-        expect(cancel_result.status == "cancelled", "Le bloc STT doit honorer cancel_requested entre deux chunks.")
-        expect(len(fake_server.requests_log) - cancel_start == 1, "Le bloc STT doit stopper avant le chunk suivant.")
-        expect("annulation demandee" in cancel_result.error, "Le resultat cancelled doit expliquer l'annulation.")
-        expect("annulation demandee" in "\n".join(cancel_logs), "Les logs live doivent tracer l'annulation STT.")
+        expect(cancel_result.status == "cancelled", "The STT block must honor cancel_requested between two chunks.")
+        expect(len(fake_server.requests_log) - cancel_start == 1, "The STT block must stop before the next chunk.")
+        expect("cancellation requested" in cancel_result.error, "The cancelled result must explain the cancellation.")
+        expect("cancellation requested" in "\n".join(cancel_logs), "The live logs must trace the STT cancellation.")
 
         invalid_path = server.root_dir / "tmp" / "audio.txt"
         invalid_path.write_text("not audio", encoding="utf-8")
@@ -611,8 +611,8 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
                 config={**base_config, "audio_path": str(invalid_path)},
             )
         )
-        expect(invalid_result.status == "failed", "Un format non supporte doit etre refuse.")
-        expect("format audio non supporte" in invalid_result.error, "L'erreur doit expliquer le format non supporte.")
+        expect(invalid_result.status == "failed", "An unsupported format must be refused.")
+        expect("unsupported audio format" in invalid_result.error, "The error must explain the unsupported format.")
 
         old_max_size = openai_stt_module.OPENAI_STT_MAX_UPLOAD_BYTES
         try:
@@ -626,28 +626,28 @@ def test_chunking_and_file_constraints(fake_server: FakeOpenAiSttHttpServer) -> 
             )
         finally:
             openai_stt_module.OPENAI_STT_MAX_UPLOAD_BYTES = old_max_size
-        expect(too_large_result.status == "failed", "Un fichier trop gros sans chunking doit etre refuse.")
-        expect("chunking" in too_large_result.error, "L'erreur doit proposer d'activer le chunking.")
+        expect(too_large_result.status == "failed", "A file too large without chunking must be refused.")
+        expect("chunking" in too_large_result.error, "The error must suggest enabling chunking.")
 
 
 def test_introspection() -> None:
     description = describe_block("openai_stt")
-    expect(description["default_config"]["model"] == "gpt-4o-transcribe", "Le default model introspecte doit etre gpt-4o-transcribe.")
-    expect(description["default_config"]["chunk_size_mb"] == 24, "Le default chunk size doit etre introspecte.")
-    expect(description["default_config"]["chunk_duration_sec"] == 30, "La duree de chunk par defaut doit etre introspectee.")
-    expect(description["default_config"]["chunk_overlap_sec"] == 2, "Le chevauchement par defaut doit etre introspecte.")
+    expect(description["default_config"]["model"] == "gpt-4o-transcribe", "The introspected default model must be gpt-4o-transcribe.")
+    expect(description["default_config"]["chunk_size_mb"] == 24, "The default chunk size must be introspected.")
+    expect(description["default_config"]["chunk_duration_sec"] == 30, "The default chunk duration must be introspected.")
+    expect(description["default_config"]["chunk_overlap_sec"] == 2, "The default overlap must be introspected.")
     expect(
         description["default_config"]["experimental_audio_filter_enabled"] is False,
-        "Le filtre audio doit etre desactive par defaut.",
+        "The audio filter must be disabled by default.",
     )
     expect(
         "loudnorm" in description["default_config"]["experimental_audio_filter"],
-        "Le filtre audio par defaut doit etre introspecte.",
+        "The default audio filter must be introspected.",
     )
-    expect(description["default_config"]["sliding_context_enabled"] is False, "Le contexte glissant doit etre desactive par defaut.")
-    expect(description["capabilities"]["runtime_executable"], "openai_stt doit etre runtime_executable.")
-    expect(description["capabilities"]["active_worker"], "openai_stt doit etre active_worker.")
-    expect(description["capabilities"]["file_browser"], "openai_stt doit exposer le browse fichier audio.")
+    expect(description["default_config"]["sliding_context_enabled"] is False, "The sliding context must be disabled by default.")
+    expect(description["capabilities"]["runtime_executable"], "openai_stt must be runtime_executable.")
+    expect(description["capabilities"]["active_worker"], "openai_stt must be active_worker.")
+    expect(description["capabilities"]["file_browser"], "openai_stt must expose the audio file browsing.")
 
 
 def main() -> None:
@@ -660,7 +660,7 @@ def main() -> None:
         test_chunking_and_file_constraints(fake_server)
         test_introspection()
     # Direct smoke on the class export as well.
-    expect(OpenAiSttBlock().kind == "openai_stt", "Le bloc OpenAI STT doit exposer son kind.")
+    expect(OpenAiSttBlock().kind == "openai_stt", "The OpenAI STT block must expose its kind.")
     print("[ok] F5.17_openai_stt_block")
 
 

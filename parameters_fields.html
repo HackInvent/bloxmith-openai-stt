@@ -1,5 +1,5 @@
 <div class="field-group">
-  <label for="{{ id_prefix }}Model">Modele</label>
+  <label for="{{ id_prefix }}Model">Model</label>
   <select id="{{ id_prefix }}Model" data-openai-stt-model>{{ model_options }}</select>
 </div>
 
@@ -16,41 +16,41 @@
   />
   <label class="checkbox-line">
     <input data-openai-stt-clear-api-key type="checkbox" />
-    <span>Effacer la cle existante</span>
+    <span>Clear the existing key</span>
   </label>
 </div>
 
 {{ audio_path_browser_html }}
 
 <div class="field-group">
-  <label for="{{ id_prefix }}Language">Langue</label>
+  <label for="{{ id_prefix }}Language">Language</label>
   <input id="{{ id_prefix }}Language" data-openai-stt-language type="text" value="{{ language }}" placeholder="fr" spellcheck="false" />
 </div>
 
 <div class="field-group">
   <label for="{{ id_prefix }}Prompt">Prompt</label>
-  <textarea id="{{ id_prefix }}Prompt" data-openai-stt-prompt rows="3" placeholder="Contexte optionnel pour guider la transcription...">{{ prompt }}</textarea>
+  <textarea id="{{ id_prefix }}Prompt" data-openai-stt-prompt rows="3" placeholder="Optional context to guide the transcription...">{{ prompt }}</textarea>
 </div>
 
 <div class="field-group">
-  <label for="{{ id_prefix }}ResponseFormat">Format reponse</label>
+  <label for="{{ id_prefix }}ResponseFormat">Response format</label>
   <select id="{{ id_prefix }}ResponseFormat" data-openai-stt-response-format>{{ response_format_options }}</select>
 </div>
 
 <div class="field-grid two-cols">
   <div class="field-group">
-    <label for="{{ id_prefix }}ChunkSizeMb">Chunk size Mo</label>
+    <label for="{{ id_prefix }}ChunkSizeMb">Chunk size MB</label>
     <input id="{{ id_prefix }}ChunkSizeMb" data-openai-stt-chunk-size-mb type="number" min="1" max="25" step="1" value="{{ chunk_size_mb }}" />
   </div>
   <div class="field-group">
-    <label for="{{ id_prefix }}ChunkDurationSec">Fenetre sec</label>
+    <label for="{{ id_prefix }}ChunkDurationSec">Window sec</label>
     <input id="{{ id_prefix }}ChunkDurationSec" data-openai-stt-chunk-duration-sec type="number" min="1" max="600" step="1" value="{{ chunk_duration_sec }}" />
   </div>
 </div>
 
 <div class="field-grid two-cols">
   <div class="field-group">
-    <label for="{{ id_prefix }}ChunkOverlapSec">Chevauchement sec</label>
+    <label for="{{ id_prefix }}ChunkOverlapSec">Overlap sec</label>
     <input id="{{ id_prefix }}ChunkOverlapSec" data-openai-stt-chunk-overlap-sec type="number" min="0" max="60" step="1" value="{{ chunk_overlap_sec }}" />
   </div>
   <div class="field-group">
@@ -62,18 +62,18 @@
 <div class="field-group">
   <label class="checkbox-line">
     <input data-openai-stt-chunking-enabled type="checkbox" {{ chunking_enabled_checked }} />
-    <span>Decouper automatiquement les fichiers superieurs au chunk size</span>
+    <span>Automatically split files larger than the chunk size</span>
   </label>
   <label class="checkbox-line">
     <input data-openai-stt-sliding-context-enabled type="checkbox" {{ sliding_context_checked }} />
-    <span>Utiliser le texte du chunk precedent comme contexte glissant</span>
+    <span>Use the previous chunk text as sliding context</span>
   </label>
 </div>
 
 <div class="field-group">
   <label class="checkbox-line">
     <input data-openai-stt-experimental-audio-filter-enabled type="checkbox" {{ experimental_audio_filter_enabled_checked }} />
-    <span>Appliquer un filtre audio ffmpeg avant transcription</span>
+    <span>Apply an ffmpeg audio filter before transcription</span>
   </label>
   <textarea
     data-openai-stt-experimental-audio-filter
@@ -95,5 +95,5 @@
 </div>
 
 <div class="inspector-actions">
-  <button class="solid-btn" {{ apply_button_attr }} type="button" disabled>Appliquer</button>
+  <button class="solid-btn" {{ apply_button_attr }} type="button" disabled>Apply</button>
 </div>

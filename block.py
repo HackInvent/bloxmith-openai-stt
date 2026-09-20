@@ -301,7 +301,7 @@ class OpenAiSttBlock(BlockDefinition):
 
         return render_path_browser_control(
             input_id=input_id,
-            label="Chemin audio par defaut",
+            label="Default audio path",
             value=str(config.get("audio_path") or ""),
             placeholder="./audio.wav",
             input_attrs="data-openai-stt-audio-path",
@@ -394,8 +394,8 @@ class OpenAiSttBlock(BlockDefinition):
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: fichier={display_path} "
-                f"taille={self._format_bytes(audio_path.stat().st_size)} model={config['model']} "
+                f"[openai-stt] {context.node_id}: file={display_path} "
+                f"size={self._format_bytes(audio_path.stat().st_size)} model={config['model']} "
                 f"format={config['response_format']} timeout={config['timeout_sec']}s.",
             )
             self._emit_log(
@@ -403,16 +403,16 @@ class OpenAiSttBlock(BlockDefinition):
                 logs,
                 f"[openai-stt] {context.node_id}: chunking="
                 f"{'on' if config['chunking_enabled'] else 'off'} "
-                f"max={config['chunk_size_mb']} Mo fenetre={config['chunk_duration_sec']}s "
+                f"max={config['chunk_size_mb']} MB window={config['chunk_duration_sec']}s "
                 f"overlap={config['chunk_overlap_sec']}s "
-                f"filtre_audio={'on' if config['experimental_audio_filter_enabled'] else 'off'} "
-                f"contexte_glissant={'on' if config['sliding_context_enabled'] else 'off'}.",
+                f"audio_filter={'on' if config['experimental_audio_filter_enabled'] else 'off'} "
+                f"sliding_context={'on' if config['sliding_context_enabled'] else 'off'}.",
             )
             if config["experimental_audio_filter_enabled"]:
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: filtre audio ffmpeg={config['experimental_audio_filter']}.",
+                    f"[openai-stt] {context.node_id}: audio filter ffmpeg={config['experimental_audio_filter']}.",
                 )
             response = self._transcribe_audio(
                 audio_path=audio_path,
@@ -427,7 +427,7 @@ class OpenAiSttBlock(BlockDefinition):
             self._emit_log(
                 context,
                 logs,
-                f"[done] OpenAI STT {context.node_id}: {len(transcript)} caractere(s), "
+                f"[done] OpenAI STT {context.node_id}: {len(transcript)} character(s), "
                 f"{chunk_count} chunk(s).",
             )
             return BlockRuntimeResult(
@@ -673,7 +673,7 @@ class OpenAiSttBlock(BlockDefinition):
         else:
             path = path.resolve()
         if not path.is_file():
-            raise OpenAiSttBlockError(f"fichier audio introuvable: {self._display_path(path, context.root_dir)}")
+            raise OpenAiSttBlockError(f"audio file not found: {self._display_path(path, context.root_dir)}")
         return path
 
     def _transcribe_audio(
@@ -693,7 +693,7 @@ class OpenAiSttBlock(BlockDefinition):
             logs: Logs value used by this block helper.
         """
         self._validate_audio_file(audio_path=audio_path, config=config)
-        self._emit_log(context, logs, f"[openai-stt] {context.node_id}: validation fichier OK.")
+        self._emit_log(context, logs, f"[openai-stt] {context.node_id}: file validation OK.")
         self._raise_if_cancelled(context)
         segment_plans, temp_dir = self._audio_segment_plans(audio_path=audio_path, config=config, context=context, logs=logs)
         try:
@@ -702,16 +702,16 @@ class OpenAiSttBlock(BlockDefinition):
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: envoi OpenAI fichier complet "
+                    f"[openai-stt] {context.node_id}: full-file OpenAI upload "
                     f"({self._format_bytes(audio_path.stat().st_size)}).",
                 )
                 response = self._transcribe(audio_path=segment_plans[0].path, config=config)
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: reponse OpenAI HTTP "
+                    f"[openai-stt] {context.node_id}: OpenAI HTTP response "
                     f"{response.get('status_code', '?')} "
-                    f"({len(self._transcript_from_response(response))} caractere(s)).",
+                    f"({len(self._transcript_from_response(response))} character(s)).",
                 )
                 response.setdefault("chunk_count", 1)
                 return response
@@ -721,15 +721,15 @@ class OpenAiSttBlock(BlockDefinition):
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: audio decoupe en {len(segment_plans)} chunk(s).",
+                f"[openai-stt] {context.node_id}: audio split into {len(segment_plans)} chunk(s).",
             )
             previous_chunk_text = ""
             for segment_plan in segment_plans:
                 self._raise_if_cancelled(context)
                 if segment_plan.path.stat().st_size > OPENAI_STT_MAX_UPLOAD_BYTES:
                     raise OpenAiSttBlockError(
-                        "segment audio trop volumineux apres decoupage; "
-                        "reduis chunk_size_mb ou compresse le fichier."
+                        "audio segment too large after splitting; "
+                        "reduce chunk_size_mb or compress the file."
                     )
                 self._emit_log(
                     context,
@@ -748,7 +748,7 @@ class OpenAiSttBlock(BlockDefinition):
                         context,
                         logs,
                         f"[openai-stt] {context.node_id}: chunk {segment_plan.index}/{len(segment_plans)} "
-                        "contexte glissant injecte.",
+                        "sliding context injected.",
                     )
                 segment_response = self._transcribe(
                     audio_path=segment_plan.path,
@@ -761,8 +761,8 @@ class OpenAiSttBlock(BlockDefinition):
                     context,
                     logs,
                     f"[openai-stt] {context.node_id}: chunk {segment_plan.index}/{len(segment_plans)} "
-                    f"termine HTTP {segment_response.get('status_code', '?')} "
-                    f"({len(chunk_text)} caractere(s)).",
+                    f"finished HTTP {segment_response.get('status_code', '?')} "
+                    f"({len(chunk_text)} character(s)).",
                 )
                 segment_payload = dict(segment_response)
                 segment_payload["chunk_index"] = segment_plan.index
@@ -783,20 +783,20 @@ class OpenAiSttBlock(BlockDefinition):
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: assemblage de {len(responses)} chunk(s) "
-                f"avec suppression overlap={config['chunk_overlap_sec']}s.",
+                f"[openai-stt] {context.node_id}: merge of {len(responses)} chunk(s) "
+                f"with overlap removal={config['chunk_overlap_sec']}s.",
             )
             merged = self._merge_chunk_responses(responses=responses, config=config)
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: assemblage termine "
-                f"({len(self._transcript_from_response(merged))} caractere(s)).",
+                f"[openai-stt] {context.node_id}: merge complete "
+                f"({len(self._transcript_from_response(merged))} character(s)).",
             )
             return merged
         finally:
             if temp_dir is not None:
-                self._emit_log(context, logs, f"[openai-stt] {context.node_id}: nettoyage chunks temporaires.")
+                self._emit_log(context, logs, f"[openai-stt] {context.node_id}: temporary chunk cleanup.")
                 temp_dir.cleanup()
 
     def _validate_audio_file(self, *, audio_path: Path, config: dict[str, Any]) -> None:
@@ -809,13 +809,13 @@ class OpenAiSttBlock(BlockDefinition):
         suffix = audio_path.suffix.lower()
         if suffix not in OPENAI_STT_SUPPORTED_EXTENSIONS:
             allowed = ", ".join(ext.lstrip(".") for ext in OPENAI_STT_SUPPORTED_EXTENSIONS)
-            raise OpenAiSttBlockError(f"format audio non supporte ({suffix or 'sans extension'}). Formats: {allowed}.")
+            raise OpenAiSttBlockError(f"unsupported audio format ({suffix or 'no extension'}). Formats: {allowed}.")
         size = audio_path.stat().st_size
         if size <= 0:
-            raise OpenAiSttBlockError("fichier audio vide.")
+            raise OpenAiSttBlockError("empty audio file.")
         if size > OPENAI_STT_MAX_UPLOAD_BYTES and not config.get("chunking_enabled"):
             raise OpenAiSttBlockError(
-                "fichier audio superieur a 25 Mo; active le chunking ou compresse le fichier."
+                "audio file larger than 25 MB; enable chunking or compress the file."
             )
 
     def _audio_segment_plans(
@@ -850,12 +850,12 @@ class OpenAiSttBlock(BlockDefinition):
         use_audio_filter = bool(config.get("experimental_audio_filter_enabled") and audio_filter)
         if not config.get("chunking_enabled"):
             if not use_audio_filter:
-                self._emit_log(context, logs, f"[openai-stt] {context.node_id}: chunking desactive, pas de decoupage.")
+                self._emit_log(context, logs, f"[openai-stt] {context.node_id}: chunking disabled, no splitting.")
                 return [single_plan], None
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: chunking desactive, filtre audio via ffmpeg.",
+                f"[openai-stt] {context.node_id}: chunking disabled, audio filter through ffmpeg.",
             )
             return self._single_ffmpeg_segment_plan(
                 audio_path=audio_path,
@@ -867,27 +867,27 @@ class OpenAiSttBlock(BlockDefinition):
 
         suffix = audio_path.suffix.lower()
         if suffix == ".wav":
-            self._emit_log(context, logs, f"[openai-stt] {context.node_id}: analyse WAV native.")
+            self._emit_log(context, logs, f"[openai-stt] {context.node_id}: native WAV analysis.")
             try:
                 duration_seconds = self._probe_wav_duration_seconds(audio_path)
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: duree audio={self._format_duration(duration_seconds)}.",
+                    f"[openai-stt] {context.node_id}: audio duration={self._format_duration(duration_seconds)}.",
                 )
             except (wave.Error, EOFError, OSError):
                 if size <= max_bytes and not use_audio_filter:
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: WAV non standard mais taille <= limite; envoi direct.",
+                        f"[openai-stt] {context.node_id}: non-standard WAV but size <= limit; direct upload.",
                     )
                     return [single_plan], None
                 if use_audio_filter:
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: WAV non standard, analyse ffprobe pour filtre audio.",
+                        f"[openai-stt] {context.node_id}: non-standard WAV, ffprobe analysis for the audio filter.",
                     )
                     duration_seconds = self._probe_duration_seconds(audio_path)
                 else:
@@ -897,7 +897,7 @@ class OpenAiSttBlock(BlockDefinition):
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: decoupage inutile, filtre audio en un segment.",
+                        f"[openai-stt] {context.node_id}: no split needed, audio filter in a single segment.",
                     )
                     return self._single_ffmpeg_segment_plan(
                         audio_path=audio_path,
@@ -909,9 +909,9 @@ class OpenAiSttBlock(BlockDefinition):
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: decoupage inutile "
+                    f"[openai-stt] {context.node_id}: no split needed "
                     f"({self._format_bytes(size)} <= {self._format_bytes(max_bytes)}, "
-                    f"duree <= {config['chunk_duration_sec']}s).",
+                    f"duration <= {config['chunk_duration_sec']}s).",
                 )
                 return [single_plan], None
         else:
@@ -920,19 +920,19 @@ class OpenAiSttBlock(BlockDefinition):
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: ffmpeg absent mais taille <= limite; envoi direct.",
+                        f"[openai-stt] {context.node_id}: ffmpeg missing but size <= limit; direct upload.",
                     )
                     return [single_plan], None
                 raise OpenAiSttBlockError(
-                    "chunking requis pour ce fichier, mais ffmpeg/ffprobe est indisponible."
+                    "chunking is required for this file, but ffmpeg/ffprobe is unavailable."
                 )
-            self._emit_log(context, logs, f"[openai-stt] {context.node_id}: analyse audio via ffprobe.")
+            self._emit_log(context, logs, f"[openai-stt] {context.node_id}: audio analysis through ffprobe.")
             duration_seconds = self._probe_duration_seconds(audio_path)
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: duree audio="
-                f"{self._format_duration(duration_seconds) if duration_seconds > 0 else 'inconnue'}.",
+                f"[openai-stt] {context.node_id}: audio duration="
+                f"{self._format_duration(duration_seconds) if duration_seconds > 0 else 'unknown'}.",
             )
             if size <= max_bytes and (
                 duration_seconds <= 0 or duration_seconds <= float(config["chunk_duration_sec"])
@@ -941,7 +941,7 @@ class OpenAiSttBlock(BlockDefinition):
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: decoupage inutile, filtre audio en un segment.",
+                        f"[openai-stt] {context.node_id}: no split needed, audio filter in a single segment.",
                     )
                     return self._single_ffmpeg_segment_plan(
                         audio_path=audio_path,
@@ -953,7 +953,7 @@ class OpenAiSttBlock(BlockDefinition):
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: decoupage inutile "
+                    f"[openai-stt] {context.node_id}: no split needed "
                     f"({self._format_bytes(size)} <= {self._format_bytes(max_bytes)}).",
                 )
                 return [single_plan], None
@@ -972,8 +972,8 @@ class OpenAiSttBlock(BlockDefinition):
                     self._emit_log(
                         context,
                         logs,
-                        f"[openai-stt] {context.node_id}: decoupage WAV via ffmpeg avec filtre audio "
-                        f"fenetre={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
+                        f"[openai-stt] {context.node_id}: WAV split through ffmpeg with the audio filter "
+                        f"window={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
                         f"max={self._format_bytes(max_bytes)}.",
                     )
                     chunks = self._chunk_with_ffmpeg(
@@ -989,8 +989,8 @@ class OpenAiSttBlock(BlockDefinition):
                         self._emit_log(
                             context,
                             logs,
-                            f"[openai-stt] {context.node_id}: decoupage WAV "
-                            f"fenetre={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
+                            f"[openai-stt] {context.node_id}: WAV split "
+                            f"window={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
                             f"max={self._format_bytes(max_bytes)}.",
                         )
                         chunks = self._chunk_wav_by_time(
@@ -1004,7 +1004,7 @@ class OpenAiSttBlock(BlockDefinition):
                         self._emit_log(
                             context,
                             logs,
-                            f"[openai-stt] {context.node_id}: decoupage WAV natif impossible, fallback ffmpeg.",
+                            f"[openai-stt] {context.node_id}: native WAV split impossible, ffmpeg fallback.",
                         )
                         chunks = self._chunk_with_ffmpeg(
                             audio_path=audio_path,
@@ -1018,10 +1018,10 @@ class OpenAiSttBlock(BlockDefinition):
                 self._emit_log(
                     context,
                     logs,
-                    f"[openai-stt] {context.node_id}: decoupage ffmpeg "
-                    f"fenetre={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
+                    f"[openai-stt] {context.node_id}: ffmpeg split "
+                    f"window={config['chunk_duration_sec']}s overlap={config['chunk_overlap_sec']}s "
                     f"max={self._format_bytes(max_bytes)} "
-                    f"filtre_audio={'on' if use_audio_filter else 'off'}.",
+                    f"audio_filter={'on' if use_audio_filter else 'off'}.",
                 )
                 chunks = self._chunk_with_ffmpeg(
                     audio_path=audio_path,
@@ -1032,12 +1032,12 @@ class OpenAiSttBlock(BlockDefinition):
                     audio_filter=audio_filter if use_audio_filter else "",
                 )
             if not chunks:
-                raise OpenAiSttBlockError("decoupage audio impossible: aucun segment produit.")
+                raise OpenAiSttBlockError("audio split impossible: no segment produced.")
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: {len(chunks)} chunk(s) prepare(s) "
-                f"taille_totale={self._format_bytes(sum(chunk.path.stat().st_size for chunk in chunks))}.",
+                f"[openai-stt] {context.node_id}: {len(chunks)} chunk(s) prepared "
+                f"total_size={self._format_bytes(sum(chunk.path.stat().st_size for chunk in chunks))}.",
             )
             return chunks, temp_dir
         except Exception:
@@ -1071,7 +1071,7 @@ class OpenAiSttBlock(BlockDefinition):
             except (wave.Error, EOFError, OSError):
                 duration_seconds = -1.0
         if duration_seconds <= 0:
-            raise OpenAiSttBlockError("duree audio impossible a mesurer pour le filtre audio.")
+            raise OpenAiSttBlockError("audio duration cannot be measured for the audio filter.")
 
         parent_dir = context.run_dir if context.run_dir else None
         if parent_dir is not None:
@@ -1093,13 +1093,13 @@ class OpenAiSttBlock(BlockDefinition):
             )
             if extract_duration + 0.5 < duration_seconds:
                 raise OpenAiSttBlockError(
-                    "filtre audio impossible en un seul upload; active le chunking ou reduis la fenetre."
+                    "the audio filter does not fit a single upload; enable chunking or reduce the window."
                 )
             self._emit_log(
                 context,
                 logs,
-                f"[openai-stt] {context.node_id}: fichier filtre "
-                f"taille={self._format_bytes(chunk_path.stat().st_size)} duree={self._format_duration(extract_duration)}.",
+                f"[openai-stt] {context.node_id}: filtered file "
+                f"size={self._format_bytes(chunk_path.stat().st_size)} duration={self._format_duration(extract_duration)}.",
             )
             return [
                 AudioSegmentPlan(
@@ -1173,7 +1173,7 @@ class OpenAiSttBlock(BlockDefinition):
                 nominal_start_frame += nominal_frames
                 index += 1
                 if index > 10000:
-                    raise OpenAiSttBlockError("decoupage audio interrompu: trop de segments.")
+                    raise OpenAiSttBlockError("audio split interrupted: too many segments.")
         return chunks
 
     def _chunk_with_ffmpeg(
@@ -1198,11 +1198,11 @@ class OpenAiSttBlock(BlockDefinition):
         """
         if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
             raise OpenAiSttBlockError(
-                "chunking requis pour ce fichier, mais ffmpeg/ffprobe est indisponible."
+                "chunking is required for this file, but ffmpeg/ffprobe is unavailable."
             )
         duration_seconds = self._probe_duration_seconds(audio_path)
         if duration_seconds <= 0:
-            raise OpenAiSttBlockError("duree audio impossible a mesurer avec ffprobe.")
+            raise OpenAiSttBlockError("audio duration cannot be measured with ffprobe.")
 
         input_size = max(1, audio_path.stat().st_size)
         size_bound_duration = max(1.0, math.floor((max_bytes * 0.90 / input_size) * duration_seconds))
@@ -1241,7 +1241,7 @@ class OpenAiSttBlock(BlockDefinition):
             nominal_start += max(0.001, effective_nominal_duration)
             index += 1
             if index > 10000:
-                raise OpenAiSttBlockError("decoupage audio interrompu: trop de segments.")
+                raise OpenAiSttBlockError("audio split interrupted: too many segments.")
         return chunks
 
     def _write_ffmpeg_chunk(
@@ -1311,15 +1311,15 @@ class OpenAiSttBlock(BlockDefinition):
                     timeout=FFMPEG_PROCESS_TIMEOUT_SEC,
                 )
             except subprocess.TimeoutExpired as exc:
-                raise OpenAiSttBlockError("ffmpeg a depasse le timeout pendant le decoupage audio.") from exc
+                raise OpenAiSttBlockError("ffmpeg exceeded the timeout during the audio split.") from exc
             if result.returncode != 0 or not chunk_path.exists() or chunk_path.stat().st_size <= 0:
                 details = (result.stderr or result.stdout or "").strip()
-                raise OpenAiSttBlockError(f"ffmpeg a echoue pendant le decoupage audio: {details[:300]}")
+                raise OpenAiSttBlockError(f"ffmpeg failed during the audio split: {details[:300]}")
             if chunk_path.stat().st_size <= max_bytes:
                 return current_duration
             if current_duration <= 1.0:
                 raise OpenAiSttBlockError(
-                    "un segment ffmpeg depasse encore la taille maximale autorisee."
+                    "one ffmpeg segment still exceeds the maximum allowed size."
                 )
             current_duration = max(1.0, current_duration * 0.75)
 
@@ -1444,8 +1444,8 @@ class OpenAiSttBlock(BlockDefinition):
         if not context_text:
             return base_prompt
         sliding_prompt = (
-            "Contexte du chunk audio precedent, a utiliser seulement pour la continuite. "
-            "Ne le recopie pas si le contenu n'est pas audible dans le chunk courant:\n"
+            "Context from the previous audio chunk, to be used only for continuity. "
+            "Do not copy it if the content is not audible in the current chunk:\n"
             f"{context_text}"
         )
         return "\n\n".join(part for part in (base_prompt, sliding_prompt) if part)
@@ -1839,7 +1839,7 @@ class OpenAiSttBlock(BlockDefinition):
             context: Generic runtime context injected by the execution engine.
         """
         if self._cancel_requested(context):
-            raise OpenAiSttBlockCancelled("annulation demandee")
+            raise OpenAiSttBlockCancelled("cancellation requested")
 
     def _format_bytes(self, value: int | float) -> str:
         """Format a value for logs, UI display, or runtime output.
