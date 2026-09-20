@@ -5,18 +5,17 @@
  * Email: alex@hackinvent.com
  * Created Date: 2026-05-18
  */
-
-.cw-openai-stt-modal {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(1180px, calc(100vw - 32px));
 }
 
-.cw-openai-stt-modal .modal-header {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .modal-header {
   padding-inline: 24px;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-body {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-body {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
   min-height: min(78vh, 820px);
@@ -24,7 +23,7 @@
   background: #f7f9fd;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tablist {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tablist {
   display: grid;
   align-content: start;
   gap: 8px;
@@ -36,7 +35,7 @@
   background: #ffffff;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab {
   display: grid;
   gap: 4px;
   width: 100%;
@@ -51,43 +50,43 @@
   cursor: pointer;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab span,
-.cw-openai-stt-modal .openai-stt-modal-tab small {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab span,
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab span {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab span {
   color: var(--ink);
   font-size: 0.92rem;
   font-weight: 800;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab small {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab small {
   font-size: 0.76rem;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab[aria-selected="true"] {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab[aria-selected="true"] {
   border-color: rgba(106, 90, 249, 0.5);
   background: #f5f3ff;
   color: var(--accent-strong);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-.cw-openai-stt-modal .openai-stt-modal-tab:focus-visible {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tab:focus-visible {
   outline: none;
   border-color: rgba(106, 90, 249, 0.75);
   box-shadow: 0 0 0 4px rgba(106, 90, 249, 0.12);
 }
 
-.cw-openai-stt-modal .openai-stt-modal-panels {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-panels {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-panel {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-panel {
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -95,11 +94,11 @@
   padding: 22px 24px;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-panel[hidden] {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-panel[hidden] {
   display: none;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-section {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-section {
   min-width: 0;
   padding: 16px;
   border: 1px solid var(--line);
@@ -107,23 +106,23 @@
   background: #ffffff;
 }
 
-.cw-openai-stt-modal .openai-stt-modal-grid {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   align-items: start;
 }
 
-.cw-openai-stt-modal .inspector-actions {
+[data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .inspector-actions {
   justify-content: flex-end;
 }
 
 @media (max-width: 860px) {
-  .cw-openai-stt-modal .openai-stt-modal-body {
+  [data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-body {
     grid-template-columns: 1fr;
   }
 
-  .cw-openai-stt-modal .openai-stt-modal-tablist {
+  [data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-tablist {
     grid-auto-flow: column;
     grid-auto-columns: minmax(160px, 1fr);
     overflow-x: auto;
@@ -131,7 +130,7 @@
     border-bottom: 1px solid var(--line);
   }
 
-  .cw-openai-stt-modal .openai-stt-modal-grid {
+  [data-block-release="openai_stt@0.1.0"] .cw-openai-stt-modal .openai-stt-modal-grid {
     grid-template-columns: 1fr;
   }
 }

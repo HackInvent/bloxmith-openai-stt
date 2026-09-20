@@ -112,18 +112,6 @@ class OpenAiSttBlock(BlockDefinition):
     """Autonomous block implementation for `OpenAiSttBlock`."""
     kind = "openai_stt"
 
-    def ui_assets(self, surface: str = "modal") -> list[dict[str, str]]:
-        """Declare block-owned UI assets for inspector and modal surfaces."""
-
-        if surface == "modal":
-            return [
-                {"kind": "css", "path": "assets/css/block_modal.css"},
-                {"kind": "js", "path": "assets/js/block_modal.js"},
-            ]
-        if surface == "inspector_panel":
-            return [{"kind": "js", "path": "assets/js/inspector_panel.js"}]
-        return []
-
     def render_node_card(self, *, node: dict[str, Any], payload: dict[str, Any] | None = None) -> dict[str, Any]:
         """Render the OpenAI STT canvas card body from the block-owned template."""
 

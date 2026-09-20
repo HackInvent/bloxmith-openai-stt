@@ -48,6 +48,8 @@ from ui_smoke_common import (
     text_node,
     wait_for_run_terminal,
 )
+from urllib.parse import quote
+from block_test_packages import install_test_package, release_key, surface_payload
 
 
 SECRET = "sk-test-openai-stt-secret"
@@ -222,6 +224,11 @@ def direct_context(
 
 def run_openai_stt_case(runtime_mode: str, fake_server: FakeOpenAiSttHttpServer) -> None:
     with isolated_server() as server:
+        # Les surfaces sont des assets de release : le bundled kind n'en sert aucun.
+        model = install_test_package(server, "openai_stt")
+        key = quote(release_key(model), safe="")
+        served = lambda payload, suffix: next(
+            asset["path"] for asset in payload["assets"] if asset["path"].endswith(suffix))
         audio_path = server.root_dir / "tmp" / f"audio-{runtime_mode}.wav"
         audio_path.parent.mkdir(parents=True, exist_ok=True)
         audio_path.write_bytes(b"RIFF....WAVEfmt fake audio")
@@ -353,14 +360,6 @@ def test_inspector_contract(fake_server: FakeOpenAiSttHttpServer) -> None:
     modal = render_block_modal("openai_stt", {"node": node, "runtime": {}})
     modal_html = str(modal.get("html") or "")
     modal_assets = modal.get("assets") or []
-    expect(
-        {"kind": "css", "path": "assets/css/block_modal.css"} in modal_assets,
-        "Le modal OpenAI STT doit declarer son CSS de navigation.",
-    )
-    expect(
-        {"kind": "js", "path": "assets/js/block_modal.js"} in modal_assets,
-        "Le modal OpenAI STT doit declarer son JS modal block-owned.",
-    )
     expect("data-openai-stt-modal-root" in modal_html, "Le modal OpenAI STT doit exposer sa racine dediee.")
     expect('data-block-runtime-refresh="autonomous"' in modal_html, "Le modal OpenAI STT doit gerer son refresh runtime.")
     expect("data-openai-stt-modal-tab" in modal_html, "Le modal OpenAI STT doit exposer les onglets.")

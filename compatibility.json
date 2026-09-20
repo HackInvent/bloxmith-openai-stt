@@ -5,7 +5,7 @@
   "maintained_by": "HackInvent",
   "source": {
     "algorithm": "block-source-v1",
-    "sha256": "f81d8cce2da71e1a9e4484a157491ff21d26010fb04715d5358a9972e04f16dc"
+    "sha256": "9422f202e29ae6b522235a90401d3e309c6c9da823ad1a72f963fb9e31a5db57"
   },
   "bloxsmith_compatibility": [
     "1.0.9"
@@ -14,16 +14,16 @@
   "validations": [
     {
       "bloxsmith_version": "1.0.9",
-      "framework_commit": "c116ad3217a696d6408f9beb76def3c98f502b8f",
-      "framework_source_sha256": "9d1823215d180a49aea13bcbf1717e6bf80309ca7bc7197ddfca2f1bb47e9f6f",
-      "tested_at": "2026-09-13T13:49:01.904874+00:00",
+      "framework_commit": "57e7ba724774c646df175ab870afd601d8aa4cd5",
+      "framework_source_sha256": "48b1b447ea65fcc6e6b828b2a6b624febe02d878814142b18917e4a5fc40963e",
+      "tested_at": "2026-09-20T00:42:17.467406+00:00",
       "status": "passed",
       "installation_mode": "bundled",
       "suite_paths": [
         "tests/F5.17_openai_stt_block.py"
       ],
       "suite_count": 1,
-      "report_sha256": "cdbd5475f21a955d12586e10aa18522169c3ce058779dc013933edfe30616032"
+      "report_sha256": "63512b2b3ee3e3c838826b94e907cc6ee6bf821cded10037f66b35718471bd55"
     }
   ]
 }
