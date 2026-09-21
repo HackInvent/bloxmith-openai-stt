@@ -250,7 +250,7 @@ def run_openai_stt_case(runtime_mode: str, fake_server: FakeOpenAiSttHttpServer)
         logs = "\n".join(run.get("logs", []))
         stt_node_id = runtime_node_id_for_kind(run, "openai_stt")
         node_logs = "\n".join(run.get("node_logs", {}).get(stt_node_id, []))
-        expect(run.get("status") == "success", f"Le run OpenAI STT {runtime_mode} doit reussir.")
+        expect(run.get("status") == "success", f"The OpenAI STT {runtime_mode} run must succeed.")
         expect(
             run.get("output_values", {}).get(f"{stt_node_id}:1", {}).get("value") == TRANSCRIPT,
             "The STT transcript must be published on the transcript port.",
