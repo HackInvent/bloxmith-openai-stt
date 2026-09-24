@@ -1,3 +1,5 @@
+import { withProperties } from "./properties.js";
+
 /**
  * Role: Mounts the OpenAI STT block inspector panel frontend.
  * File Name: inspector_panel.js
@@ -114,6 +116,11 @@ function mountOpenAiSttEditor(root, api, { actionName = "inspector_update_openai
  * @param {HTMLElement} root - Mounted OpenAI STT inspector root.
  * @param {object} api - Generic block UI API exposing block actions.
  */
-export function mount(root, api) {
+function mountOwned(root, api) {
   mountOpenAiSttEditor(root, api, { actionName: "inspector_update_openai_stt" });
+}
+
+/** Keep the block behavior and add properties-only accessibility. */
+export function mount(root, ...args) {
+  return withProperties(mountOwned).call(this, root, ...args);
 }

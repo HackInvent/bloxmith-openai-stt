@@ -1,3 +1,5 @@
+import { withProperties } from "./properties.js";
+
 /**
  * Role: Mounts the OpenAI STT block modal frontend.
  * File Name: block_modal.js
@@ -168,7 +170,12 @@ function mountTabs(root) {
  * @param {HTMLElement} root - Mounted OpenAI STT modal root.
  * @param {object} api - Generic block UI API.
  */
-export function mount(root, api = {}) {
+function mountOwned(root, api = {}) {
   mountFields(root, api);
   mountTabs(root);
+}
+
+/** Keep the block behavior and add properties-only accessibility. */
+export function mount(root, ...args) {
+  return withProperties(mountOwned).call(this, root, ...args);
 }
