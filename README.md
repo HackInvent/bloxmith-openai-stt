@@ -10,9 +10,6 @@ Verified BloxSmith versions: **1.0.9** (bundled-block tests; see [test evidence]
 
 [![STT FILE — Transcribes a completed audio file into text and structured response.](media/thumbnail.webp)](media/cover.png)
 
-*Concept illustration. [Artwork and generation prompt](media/README.md).*
-
-
 ## Role
 
 `openai_stt` transcribes an audio file through the OpenAI audio transcription API and emits the transcript text plus the raw JSON response.
